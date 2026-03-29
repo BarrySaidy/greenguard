@@ -1,0 +1,6 @@
+
+# Dataset images — stored locally only
+data/plantvillage/
+
+# Edge Impulse exports
+models/**/*.zip

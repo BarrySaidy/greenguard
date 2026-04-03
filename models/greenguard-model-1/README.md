@@ -12,9 +12,16 @@
 - Model: MobileNetV1 96x96 0.25
 - Output: 3 classes
 
+## Performance
+- Training accuracy: 77.8%
+- Test accuracy:     86.67%
+- ROC AUC:          0.96
+- F1 Score:         0.89
+
 ## Status
 - [x] Dataset uploaded
-- [ ] Impulse designed
-- [ ] Model trained
-- [ ] Model tested
-- [ ] Arduino library exported
+- [x] Impulse designed
+- [x] Model trained
+- [x] Model tested
+- [x] Arduino library exported
+- [ ] Flashed to senseBox Eye 2

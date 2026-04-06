@@ -14,6 +14,7 @@
  */
 
 #include "esp_camera.h"
+#include "img_converters.h"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "driver/rtc_io.h"
@@ -102,11 +103,11 @@ bool initCamera() {
   config.pin_pwdn     = PWDN_GPIO_NUM;
   config.pin_reset    = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.pixel_format = PIXFORMAT_JPEG;
+  config.pixel_format = PIXFORMAT_RGB565;
   config.frame_size   = FRAMESIZE_96X96;
   config.jpeg_quality = 12;
   config.fb_count     = 1;
-  config.fb_location  = CAMERA_FB_IN_DRAM;
+  config.fb_location  = CAMERA_FB_IN_PSRAM;
   config.grab_mode    = CAMERA_GRAB_WHEN_EMPTY;
 
   esp_err_t err = esp_camera_init(&config);
@@ -125,20 +126,18 @@ bool initCamera() {
 /*
  * Edge Impulse calls this function to retrieve pixel data.
  * offset and length are in pixels.
- * We pack RGB values into a single float as 0xRRGGBB.
+ * We convert RGB565 to 0xRRGGBB packed into a float.
  */
 int ei_camera_get_data(size_t offset, size_t length, float* out_ptr) {
-  size_t pixel_ix    = offset * 3;
-  size_t out_ix      = 0;
-  size_t pixels_left = length;
+  uint16_t* buf = (uint16_t*)inference_frame->buf;
 
-  while (pixels_left != 0) {
-    out_ptr[out_ix] = (inference_frame->buf[pixel_ix]     << 16)
-                    + (inference_frame->buf[pixel_ix + 1] << 8)
-                    +  inference_frame->buf[pixel_ix + 2];
-    out_ix++;
-    pixel_ix += 3;
-    pixels_left--;
+  for (size_t i = 0; i < length; i++) {
+    uint16_t pixel = buf[offset + i];
+    // RGB565: RRRRRGGGGGGBBBBB — extract and scale to 8-bit
+    uint8_t r = ((pixel >> 11) & 0x1F) << 3;
+    uint8_t g = ((pixel >> 5)  & 0x3F) << 2;
+    uint8_t b = (pixel         & 0x1F) << 3;
+    out_ptr[i] = (r << 16) | (g << 8) | b;
   }
   return 0;
 }
@@ -158,17 +157,13 @@ String runInference() {
            "\"error\":\"capture failed\",\"timestamp\":\"" + last_timestamp + "\"}";
   }
 
-  // Store JPEG copy for /capture endpoint
+  // Convert RGB565 frame to JPEG for /capture endpoint
   if (last_jpeg_buf != nullptr) {
     free(last_jpeg_buf);
     last_jpeg_buf = nullptr;
     last_jpeg_len = 0;
   }
-  last_jpeg_buf = (uint8_t*)malloc(inference_frame->len);
-  if (last_jpeg_buf != nullptr) {
-    memcpy(last_jpeg_buf, inference_frame->buf, inference_frame->len);
-    last_jpeg_len = inference_frame->len;
-  }
+  frame2jpg(inference_frame, 80, &last_jpeg_buf, &last_jpeg_len);
 
   // Build Edge Impulse signal
   ei::signal_t signal;

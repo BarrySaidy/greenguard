@@ -4,3 +4,5 @@ data/plantvillage/
 
 # Edge Impulse exports
 models/**/*.zip
+
+.DS_Store

@@ -26,8 +26,8 @@
 // CONFIGURATION — edit these before flashing
 // ─────────────────────────────────────────────
 
-const char* WIFI_SSID     = "Apartment 51a.00.01";
-const char* WIFI_PASSWORD = "46350357846122931970";
+const char* WIFI_SSID     = "";
+const char* WIFI_PASSWORD = "";
 
 // Static IP for Eye 2 — Eye 1 will call this address
 IPAddress EYE2_IP (192, 168, 178, 21);

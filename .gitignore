@@ -2,8 +2,6 @@
 # Dataset images — stored locally only
 data/plantvillage/
 data/collected_images/
-
-# Edge Impulse exports
-models/**/*.zip
+data/setup.jpeg
 
 .DS_Store

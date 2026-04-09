@@ -10,7 +10,6 @@
  * Hardware: senseBox Eye (ESP32-S3)
  * Model:    GreenGuard-Model-1 (healthy / early_sick / critical)
  *
- * Pin definitions verified against senseBox Eye seminar sketch.
  */
 
 #include "esp_camera.h"
@@ -31,7 +30,7 @@ const char* WIFI_SSID     = "";
 const char* WIFI_PASSWORD = "";
 
 // ─────────────────────────────────────────────
-// senseBox Eye Pin Definitions (verified from seminar sketch)
+// senseBox Eye Pin Definitions
 // ─────────────────────────────────────────────
 
 #define PIN_QWIIC_SDA 2

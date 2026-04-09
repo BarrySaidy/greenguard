@@ -24,6 +24,7 @@
 #include <Wire.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
+#include <ESPmDNS.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -39,24 +40,18 @@
 const char* WIFI_SSID     = ""; // Your WiFi SSID
 const char* WIFI_PASSWORD = ""; // Your WiFi password
 
-// Static IP for Eye 1
-IPAddress EYE1_IP (192, 168, 178, 20); // Set this to your desired static IP for Eye 1
-IPAddress GATEWAY (192, 168, 178,  1); // Your network gateway (usually your router's IP)
-IPAddress SUBNET  (255, 255, 255,  0); // Your network subnet mask
-IPAddress DNS     (8, 8, 8, 8);
-
-// Eye 2 endpoints
-const char* EYE2_CLASSIFY = "http://192.168.178.21/classify";
-const char* EYE2_CAPTURE  = "http://192.168.178.21/capture";
-const char* EYE2_HEALTH   = "http://192.168.178.21/health";
+// Eye 2 endpoints — mDNS hostnames work on any network
+const char* EYE2_CLASSIFY = "http://greenguard-eye2.local/classify";
+const char* EYE2_CAPTURE  = "http://greenguard-eye2.local/capture";
+const char* EYE2_HEALTH   = "http://greenguard-eye2.local/health";
 
 // openSenseMap staging — register at opensensemap.org and paste IDs here
-const char* OSM_BOX_ID        = "";  // Your senseBox ID
-const char* OSM_TEMP_SENSOR   = "";  // Your temperature sensor ID
-const char* OSM_HUMID_SENSOR  = "";  // Your humidity sensor ID
-const char* OSM_LIGHT_SENSOR  = ""; // Your light sensor ID
-const char* OSM_CONFIDENCE_SENSOR = ""; // Your confidence sensor ID
-const char* OSM_AUTH_KEY      = "";  // Your authorization key
+const char* OSM_BOX_ID        = "p810vjrlrsb1xfppeydiv778";  // Your senseBox ID
+const char* OSM_TEMP_SENSOR   = "5a31c22bca88de2d3b5dd140";  // Your temperature sensor ID
+const char* OSM_HUMID_SENSOR  = "733ce835096c7e6f61d87002";  // Your humidity sensor ID
+const char* OSM_LIGHT_SENSOR  = "a255d3861cfd76e144269553"; // Your light sensor ID
+const char* OSM_CONFIDENCE_SENSOR = "544c4976abf143811e191067"; // Your confidence sensor ID
+const char* OSM_AUTH_KEY      = "mY1CTfXuLgLEMaTQBSvkgUA0qfYxvRmI2ftgHzXHhgg";  // Your authorization key
 
 // SSL Certificate for api.staging.opensensemap.org (ISRG Root X1)
 const char* root_ca =
@@ -516,8 +511,10 @@ void handleRoot() {
   h1 { color: #97BC62; font-size: 1.6em; margin-bottom: 4px; }
   .sub { color: #aaa; font-size: 0.85em; margin-bottom: 20px; }
   .verdict-box { background: #2C5F2D; border-radius: 12px; padding: 20px;
-                 text-align: center; margin-bottom: 16px; }
-  .verdict-label { font-size: 2em; font-weight: bold; color: #fff; }
+                 text-align: center; margin-bottom: 16px; display: flex;
+                 flex-direction: column; align-items: center; }
+  .verdict-label { font-size: 2em; font-weight: bold; color: #fff;
+                   max-width: max-content; }
   .emoji { font-size: 3em; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   .card { background: #243a25; border-radius: 10px; padding: 14px; }
@@ -537,10 +534,10 @@ void handleRoot() {
                 margin: 0 auto; }
   .conf-bar-bg { background: #1a3a1b; border-radius: 4px; height: 8px; margin-top: 8px; }
   .conf-bar { background: #97BC62; border-radius: 4px; height: 8px; }
-  .refresh-btn { display: block; width: 100%; padding: 12px;
+  .refresh-btn { display: block; width: auto; max-width: 200px;
+                 padding: 12px 24px; margin: 0 auto 12px;
                  background: #2C5F2D; color: #fff; border: none;
-                 border-radius: 8px; font-size: 1em; cursor: pointer;
-                 margin-bottom: 12px; }
+                 border-radius: 8px; font-size: 1em; cursor: pointer; }
   .footer { color: #666; font-size: 0.75em; text-align: center; margin-top: 12px; }
 </style>
 </head>
@@ -677,9 +674,6 @@ void setup() {
   // 2. WiFi
   Serial.printf("Connecting to: %s\n", WIFI_SSID);
   WiFi.mode(WIFI_STA);
-  if (!WiFi.config(EYE1_IP, GATEWAY, SUBNET, DNS)) {
-    Serial.println("WARNING: Static IP failed — using DHCP");
-  }
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int attempts = 0;
@@ -701,6 +695,13 @@ void setup() {
 
   Serial.print("Eye 1 IP: ");
   Serial.println(WiFi.localIP());
+
+  // Start mDNS — Eye 1 reachable at greenguard-eye1.local on any network
+  if (MDNS.begin("greenguard-eye1")) {
+    Serial.println("mDNS: http://greenguard-eye1.local");
+  } else {
+    Serial.println("WARNING: mDNS failed");
+  }
 
   // 3. Check Eye 2
   Serial.println("Checking Eye 2...");

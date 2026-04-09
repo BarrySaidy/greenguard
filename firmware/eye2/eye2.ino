@@ -19,6 +19,7 @@
 #include "soc/rtc_cntl_reg.h"
 #include "driver/rtc_io.h"
 #include <WiFi.h>
+#include <ESPmDNS.h>
 #include <WebServer.h>
 #include <GreenGuard-Model-1_inferencing.h>
 
@@ -28,12 +29,6 @@
 
 const char* WIFI_SSID     = "";
 const char* WIFI_PASSWORD = "";
-
-// Static IP for Eye 2 — Eye 1 will call this address
-IPAddress EYE2_IP (192, 168, 178, 21);
-IPAddress GATEWAY (192, 168, 178, 1);
-IPAddress SUBNET  (255, 255, 255, 0);
-IPAddress DNS     (8, 8, 8, 8);
 
 // ─────────────────────────────────────────────
 // senseBox Eye Pin Definitions (verified from seminar sketch)
@@ -200,7 +195,7 @@ String runInference() {
   }
 
   // Flag low confidence as uncertain
-  last_uncertain  = (best_val < 0.70);
+  last_uncertain  = (best_val < 0.50);
   last_label      = last_uncertain ? "uncertain" : best_label;
   last_confidence = best_val;
 
@@ -290,9 +285,6 @@ void setup() {
   // 2. Connect to WiFi with static IP
   Serial.printf("Connecting to WiFi: %s\n", WIFI_SSID);
   WiFi.mode(WIFI_STA);
-  if (!WiFi.config(EYE2_IP, GATEWAY, SUBNET, DNS)) {
-    Serial.println("WARNING: Static IP config failed — falling back to DHCP");
-  }
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int attempts = 0;
@@ -311,6 +303,13 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.print("Eye 2 IP: ");
   Serial.println(WiFi.localIP());
+
+  // Start mDNS — Eye 2 reachable at greenguard-eye2.local on any network
+  if (MDNS.begin("greenguard-eye2")) {
+    Serial.println("mDNS: http://greenguard-eye2.local");
+  } else {
+    Serial.println("WARNING: mDNS failed");
+  }
 
   // 3. Register HTTP routes
   server.on("/classify", HTTP_GET, handleClassify);

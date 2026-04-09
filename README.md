@@ -502,17 +502,6 @@ To retrain the model with your own data:
 
 ---
 
-## Project Status
-
-- [x] Phase 1 — Dataset + Edge Impulse model
-- [x] Phase 2 — senseBox Eye 2 firmware (vision)
-- [x] Phase 3 — senseBox Eye 1 firmware (master + sensors)
-- [x] Phase 4 — Integration + system test
-- [ ] Phase 5 — Mobile app (future)
-- [ ] Phase 6 — Multi-plant dashboard (future)
-
----
-
 ## License
 
 See [LICENSE](LICENSE) file

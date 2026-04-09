@@ -46,12 +46,12 @@ const char* EYE2_CAPTURE  = "http://greenguard-eye2.local/capture";
 const char* EYE2_HEALTH   = "http://greenguard-eye2.local/health";
 
 // openSenseMap staging — register at opensensemap.org and paste IDs here
-const char* OSM_BOX_ID        = "p810vjrlrsb1xfppeydiv778";  // Your senseBox ID
-const char* OSM_TEMP_SENSOR   = "5a31c22bca88de2d3b5dd140";  // Your temperature sensor ID
-const char* OSM_HUMID_SENSOR  = "733ce835096c7e6f61d87002";  // Your humidity sensor ID
-const char* OSM_LIGHT_SENSOR  = "a255d3861cfd76e144269553"; // Your light sensor ID
-const char* OSM_CONFIDENCE_SENSOR = "544c4976abf143811e191067"; // Your confidence sensor ID
-const char* OSM_AUTH_KEY      = "mY1CTfXuLgLEMaTQBSvkgUA0qfYxvRmI2ftgHzXHhgg";  // Your authorization key
+const char* OSM_BOX_ID        = "";  // Your senseBox ID
+const char* OSM_TEMP_SENSOR   = "";  // Your temperature sensor ID
+const char* OSM_HUMID_SENSOR  = "";  // Your humidity sensor ID
+const char* OSM_LIGHT_SENSOR  = ""; // Your light sensor ID
+const char* OSM_CONFIDENCE_SENSOR = ""; // Your confidence sensor ID
+const char* OSM_AUTH_KEY      = "";  // Your authorization key
 
 // SSL Certificate for api.staging.opensensemap.org (ISRG Root X1)
 const char* root_ca =

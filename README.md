@@ -12,21 +12,21 @@ GreenGuard uses a **dual-sensor distributed architecture**:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    GreenGuard System                          │
+│                    GreenGuard System                        │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
+│                                                             │
 │  Eye 1 (Master / Brain)          Eye 2 (Slave / Vision)     │
-│  ├─ HDC1080 (temp/humidity)      ├─ OV2640 Camera          │
-│  ├─ LTR329 (light / lux)         ├─ Edge Impulse model     │
-│  ├─ OLED display (4 screens)     │  (96x96 classifier)     │
-│  ├─ HTTP server (dashboard)      └─ HTTP REST API          │
+│  ├─ HDC1080 (temp/humidity)      ├─ OV2640 Camera           │
+│  ├─ LTR329 (light / lux)         ├─ Edge Impulse model      │
+│  ├─ OLED display (4 screens)     │  (96x96 classifier)      │
+│  ├─ HTTP server (dashboard)      └─ HTTP REST API           │
 │  ├─ WiFi client                                             │
-│  └─ Calls Eye 2 every 30s ──────────────────→              │
+│  └─ Calls Eye 2 every 30s ──────────────────→               │
 │     (classification + capture)                              │
-│                                                              │
+│                                                             │
 │  Both → Upload to openSenseMap every 60s                    │
 │       → Show live data on web dashboard                     │
-│                                                              │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -80,7 +80,6 @@ senseBox Eye 1 (Qwiic port)
 - `0x40` - HDC1080
 - `0x29` - LTR329ALS (light sensor)
 - `0x3D` - SSD1306 OLED
-- (No ToF on current version)
 
 ### Wiring Diagram
 
@@ -188,17 +187,11 @@ Update these constants:
 ```cpp
 const char* WIFI_SSID     = "Your_WiFi_SSID";
 const char* WIFI_PASSWORD = "Your_WiFi_Password";
-
-// Set static IP for Eye 2 (must be different from Eye 1)
-IPAddress EYE2_IP (192, 168, 178, 21);  // e.g., 192.168.178.21
-IPAddress GATEWAY (192, 168, 178,  1);
-IPAddress SUBNET  (255, 255, 255,  0);
-IPAddress DNS     (8, 8, 8, 8);
 ```
 
 **Upload:**
 1. Plug in Eye 2 board via USB-C
-2. Select **Tools → Board → esp32 → senseBox MCU 2.1** (or similar)
+2. Select **Tools → Board → esp32 → senseBox** (or similar)
 3. Select **Tools → Port → COM#** (your board)
 4. **Sketch → Upload**
 5. Open Serial Monitor (115200 baud) to verify boot
@@ -223,17 +216,6 @@ Update these constants:
 ```cpp
 const char* WIFI_SSID     = "Your_WiFi_SSID";
 const char* WIFI_PASSWORD = "Your_WiFi_Password";
-
-// Static IP for Eye 1 (must be different from Eye 2)
-IPAddress EYE1_IP (192, 168, 178, 20);  // e.g., 192.168.178.20
-IPAddress GATEWAY (192, 168, 178,  1);
-IPAddress SUBNET  (255, 255, 255,  0);
-IPAddress DNS     (8, 8, 8, 8);
-
-// Eye 2 endpoints
-const char* EYE2_CLASSIFY = "http://192.168.178.21/classify";
-const char* EYE2_CAPTURE  = "http://192.168.178.21/capture";
-const char* EYE2_HEALTH   = "http://192.168.178.21/health";
 
 // openSenseMap staging API credentials
 const char* OSM_BOX_ID        = "your_box_id_from_opensensemap";
@@ -284,7 +266,7 @@ HTTP server started
 
 ### Web Dashboard
 
-**Access:** `http://192.168.178.20/` (or Eye 1's actual IP)
+**Access:** `http://greenguard-eye1.local/` (or Eye 1's actual IP)
 
 Shows:
 - Live temperature, humidity, light levels
@@ -296,14 +278,14 @@ Shows:
 
 ### REST API Endpoints
 
-**Eye 1 (Master) - `http://192.168.178.20`:**
+**Eye 1 (Master) - `http://greenguard-eye1.local`:**
 
 | Endpoint | Method | Response | Interval |
 |----------|--------|----------|----------|
 | `/` | GET | HTML dashboard | - |
 | `/status` | GET | JSON (all sensor + classification data) | - |
 
-**Eye 2 (Vision) - `http://192.168.178.21`:**
+**Eye 2 (Vision) - `http://greenguard-eye2.local`:**
 
 | Endpoint | Method | Response | Notes |
 |----------|--------|----------|-------|
@@ -311,7 +293,7 @@ Shows:
 | `/capture` | GET | JPEG binary | Returns last captured image |
 | `/health` | GET | JSON (status check) | Quick response |
 
-**Example:** `curl http://192.168.178.20/status`
+**Example:** `curl http://greenguard-eye1.local/status`
 
 ```json
 {
@@ -499,17 +481,6 @@ To retrain the model with your own data:
 4. Train model
 5. Deploy as Arduino library
 6. Replace the library in this project
-
----
-
-## Project Status
-
-- [x] Phase 1 — Dataset + Edge Impulse model
-- [x] Phase 2 — senseBox Eye 2 firmware (vision)
-- [x] Phase 3 — senseBox Eye 1 firmware (master + sensors)
-- [x] Phase 4 — Integration + system test
-- [ ] Phase 5 — Mobile app (future)
-- [ ] Phase 6 — Multi-plant dashboard (future)
 
 ---
 
